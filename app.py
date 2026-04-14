@@ -24,7 +24,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 
 # ── Base de données ───────────────────────────────────────────────────────────
-DB_PATH = os.environ.get('DB_PATH', 'classeur.db')
+DB_PATH = os.environ.get('DB_PATH', '/tmp/classeur.db')
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
