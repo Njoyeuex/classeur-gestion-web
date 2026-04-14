@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📒 Classeur de Gestion Financière v2</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a;
+  --vert: #27ae60; --vert-l: #0d2218; --bleu: #2e86c1; --bleu-l: #0d1f30;
+  --rouge: #c0392b; --rouge-l: #2a1010; --or: #d4ac0d; --or-l: #2a2005;
+  --violet: #7d3cbf; --violet-l: #200d38;
+  --text: #e8edf3; --text-l: #8593a0; --border: #2e3550;
+  --sidebar-w: 220px;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; margin: 0; }
+
+/* ── Sidebar ── */
+#sidebar {
+  position: fixed; top: 0; left: 0; height: 100vh; width: var(--sidebar-w);
+  background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; z-index: 100; overflow-y: auto;
+}
+#sidebar .logo {
+  padding: 20px 16px 14px; border-bottom: 1px solid var(--border);
+  font-size: 13px; font-weight: 700; color: var(--bleu); line-height: 1.4;
+}
+#sidebar .logo span { font-size: 22px; display: block; }
+#sidebar nav a {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 18px; color: var(--text-l); text-decoration: none;
+  font-size: 13px; font-weight: 500; transition: all .18s;
+  border-left: 3px solid transparent;
+}
+#sidebar nav a:hover, #sidebar nav a.active {
+  background: var(--surface2); color: var(--text); border-left-color: var(--bleu);
+}
+#sidebar nav a .icon { width: 20px; text-align: center; }
+#sidebar .sidebar-footer { margin-top: auto; padding: 14px 16px; border-top: 1px solid var(--border); }
+#sidebar .sidebar-footer small { color: var(--text-l); font-size: 11px; }
+
+/* ── Main Content ── */
+#main { margin-left: var(--sidebar-w); min-height: 100vh; }
+.topbar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 14px 28px; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+}
+.topbar h1 { font-size: 17px; font-weight: 700; margin: 0; }
+.page-content { padding: 24px 28px; }
+
+/* ── Sections ── */
+.page-section { display: none; }
+.page-section.active { display: block; }
+
+/* ── KPI Cards ── */
+.kpi-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 18px 20px; transition: transform .15s;
+}
+.kpi-card:hover { transform: translateY(-2px); }
+.kpi-card .label { font-size: 12px; color: var(--text-l); margin-bottom: 6px; }
+.kpi-card .value { font-size: 20px; font-weight: 800; }
+
+/* ── Tables ── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th {
+  background: var(--surface2); color: var(--text-l); font-weight: 600;
+  padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.data-table td {
+  padding: 8px 12px; border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.data-table tr:hover td { background: var(--surface2); }
+.data-table tr:last-child td { border-bottom: none; }
+.table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.table-scroll { overflow-x: auto; max-height: 380px; overflow-y: auto; }
+
+/* ── Forms ── */
+.form-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 20px; margin-bottom: 20px;
+}
+.form-card h5 { font-size: 14px; font-weight: 700; margin-bottom: 16px; color: var(--bleu); }
+.form-control, .form-select {
+  background: var(--bg) !important; border: 1px solid var(--border) !important;
+  color: var(--text) !important; font-size: 13px;
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--bleu) !important;
+  box-shadow: 0 0 0 3px rgba(46,134,193,.15) !important;
+  outline: none;
+}
+.form-label { font-size: 12px; color: var(--text-l); margin-bottom: 4px; }
+label.form-label { font-weight: 600; }
+
+/* ── Buttons ── */
+.btn-vert   { background: var(--vert);   color: #fff; border: none; }
+.btn-bleu   { background: var(--bleu);   color: #fff; border: none; }
+.btn-rouge  { background: var(--rouge);  color: #fff; border: none; }
+.btn-or     { background: var(--or);     color: #fff; border: none; }
+.btn-violet { background: var(--violet); color: #fff; border: none; }
+.btn-vert:hover   { background: #229954; color: #fff; }
+.btn-bleu:hover   { background: #1a6fa0; color: #fff; }
+.btn-rouge:hover  { background: #a93226; color: #fff; }
+.btn-or:hover     { background: #b7950b; color: #fff; }
+.btn-violet:hover { background: #6c3483; color: #fff; }
+.btn { border-radius: 7px; font-size: 13px; font-weight: 600; padding: 7px 16px; transition: all .15s; }
+
+/* ── Badges ── */
+.badge-ok     { background: var(--vert-l);   color: var(--vert);   padding: 3px 8px; border-radius: 5px; font-size: 11px; font-weight: 700; }
+.badge-faible { background: var(--or-l);     color: var(--or);     padding: 3px 8px; border-radius: 5px; font-size: 11px; font-weight: 700; }
+.badge-vide   { background: var(--rouge-l);  color: var(--rouge);  padding: 3px 8px; border-radius: 5px; font-size: 11px; font-weight: 700; }
+
+/* ── Alert banner ── */
+.alert-banner {
+  background: var(--or-l); border: 1px solid var(--or); border-radius: 8px;
+  padding: 10px 16px; margin-bottom: 16px; font-size: 13px; font-weight: 600; color: var(--or);
+}
+
+/* ── Charts ── */
+.chart-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 20px;
+}
+.chart-card h5 { font-size: 14px; font-weight: 700; margin-bottom: 16px; color: var(--text-l); }
+
+/* ── Section header ── */
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.section-header h2 { font-size: 18px; font-weight: 800; margin: 0; }
+
+/* ── Totals bar ── */
+.totals-bar {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 18px; display: flex; gap: 24px; flex-wrap: wrap; align-items: center;
+}
+.totals-bar .tot-item { font-size: 13px; }
+.totals-bar .tot-item .lbl { color: var(--text-l); margin-right: 6px; }
+.totals-bar .tot-item .val { font-weight: 800; font-size: 15px; }
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  :root { --sidebar-w: 0px; }
+  #sidebar { transform: translateX(-220px); transition: transform .3s; }
+  #sidebar.open { transform: translateX(0); width: 220px; }
+  #main { margin-left: 0; }
+  .page-content { padding: 16px; }
+  #menu-toggle { display: flex !important; }
+}
+#menu-toggle { display: none; }
+
+/* ── Loading ── */
+.spinner-overlay {
+  position: fixed; inset: 0; background: rgba(15,17,23,.7);
+  display: none; align-items: center; justify-content: center; z-index: 9999;
+}
+.spinner-overlay.show { display: flex; }
+
+/* ── Toast ── */
+#toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; }
+.toast-msg {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 18px; margin-top: 8px; font-size: 13px; font-weight: 600;
+  animation: slideIn .3s ease; min-width: 220px;
+}
+.toast-msg.success { border-color: var(--vert); color: var(--vert); }
+.toast-msg.error   { border-color: var(--rouge); color: var(--rouge); }
+@keyframes slideIn { from { transform: translateX(100%); opacity:0; } to { transform: translateX(0); opacity:1; } }
+
+/* ── Livre journal colors ── */
+.row-svc td { border-left: 3px solid var(--vert); }
+.row-bien td { border-left: 3px solid var(--bleu); }
+.row-sort td { border-left: 3px solid var(--rouge); }
+.row-total td { background: var(--surface2) !important; font-weight: 700; }
+
+/* ── Analyse comptable ── */
+.analyse-row { display: grid; grid-template-columns: 1fr auto auto; gap: 4px; margin-bottom: 3px; }
+.analyse-hdr { background: var(--bleu); color: #fff; padding: 7px 12px; border-radius: 6px; font-weight: 700; font-size: 12px; }
+.analyse-item { background: var(--surface2); padding: 6px 12px; border-radius: 5px; font-size: 13px; }
+.analyse-item.val-pos { color: var(--vert); font-weight: 700; }
+.analyse-item.val-neg { color: var(--rouge); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- Spinner -->
+<div class="spinner-overlay" id="spinner">
+  <div class="spinner-border text-light" style="width:3rem;height:3rem;"></div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- Sidebar -->
+<div id="sidebar">
+  <div class="logo">
+    <span>📒</span>
+    Classeur de Gestion<br>Financière
+  </div>
+  <nav>
+    <a href="#" class="active" onclick="showPage('dashboard',this)">
+      <span class="icon"><i class="fas fa-chart-line"></i></span> Tableau de bord
+    </a>
+    <a href="#" onclick="showPage('services',this)">
+      <span class="icon"><i class="fas fa-tools"></i></span> Services Rendus
+    </a>
+    <a href="#" onclick="showPage('biens',this)">
+      <span class="icon"><i class="fas fa-boxes"></i></span> Biens Vendus
+    </a>
+    <a href="#" onclick="showPage('sorties',this)">
+      <span class="icon"><i class="fas fa-arrow-up-right-from-square"></i></span> Dépenses
+    </a>
+    <a href="#" onclick="showPage('stock',this)">
+      <span class="icon"><i class="fas fa-warehouse"></i></span> Stock
+    </a>
+    <a href="#" onclick="showPage('rapports',this)">
+      <span class="icon"><i class="fas fa-file-invoice-dollar"></i></span> États Financiers
+    </a>
+    <a href="#" onclick="showPage('caisse',this)">
+      <span class="icon"><i class="fas fa-cash-register"></i></span> Caisse & Budget
+    </a>
+    <a href="#" onclick="showPage('parametres',this)">
+      <span class="icon"><i class="fas fa-cog"></i></span> Paramètres
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <small id="sidebar-date"></small><br>
+    <small style="color:var(--text-l)">v2.0 — Multi-utilisateurs</small>
+  </div>
+</div>
+
+<!-- Main -->
+<div id="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button id="menu-toggle" class="btn btn-sm btn-or" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+      </button>
+      <h1 id="topbar-title">Tableau de bord</h1>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <a href="/api/pdf/rapport" class="btn btn-or btn-sm" target="_blank">
+        <i class="fas fa-file-pdf me-1"></i>Rapport PDF
+      </a>
+      <a href="/api/pdf/facture" class="btn btn-bleu btn-sm" target="_blank">
+        <i class="fas fa-file-invoice me-1"></i>Facture PDF
+      </a>
+      <div style="display:flex;align-items:center;gap:8px;margin-left:8px;padding-left:12px;border-left:1px solid var(--border);">
+        <div style="width:30px;height:30px;border-radius:50%;background:var(--bleu);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;">
+          <span id="user-avatar">?</span>
+        </div>
+        <span id="user-name" style="font-size:13px;color:var(--text-l);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+        <button class="btn btn-sm" onclick="doLogout()" style="background:rgba(192,57,43,.15);color:var(--rouge);border:1px solid var(--rouge);font-size:11px;padding:4px 10px;">
+          <i class="fas fa-sign-out-alt me-1"></i>Déco
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="page-content">
+
+    <!-- ═══════════════════════════════════════════════ DASHBOARD -->
+    <div id="page-dashboard" class="page-section active">
+      <div id="alert-banner" class="alert-banner d-none"></div>
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="kpi-card">
+            <div class="label"><i class="fas fa-tools me-1"></i>Services</div>
+            <div class="value" id="kpi-svc" style="color:var(--vert)">—</div>
+            <div style="font-size:11px;color:var(--text-l);margin-top:2px;">BIF</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="kpi-card">
+            <div class="label"><i class="fas fa-boxes me-1"></i>Biens</div>
+            <div class="value" id="kpi-biens" style="color:var(--bleu)">—</div>
+            <div style="font-size:11px;color:var(--text-l);margin-top:2px;">BIF</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="kpi-card">
+            <div class="label"><i class="fas fa-arrow-up me-1"></i>Dépenses</div>
+            <div class="value" id="kpi-sort" style="color:var(--rouge)">—</div>
+            <div style="font-size:11px;color:var(--text-l);margin-top:2px;">BIF</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="kpi-card">
+            <div class="label"><i class="fas fa-warehouse me-1"></i>Stock</div>
+            <div class="value" id="kpi-stock" style="color:var(--violet)">—</div>
+            <div style="font-size:11px;color:var(--text-l);margin-top:2px;">BIF</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="kpi-card">
+            <div class="label"><i class="fas fa-arrow-down me-1"></i>Entrées</div>
+            <div class="value" id="kpi-entrees" style="color:var(--vert)">—</div>
+            <div style="font-size:11px;color:var(--text-l);margin-top:2px;">BIF</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="kpi-card">
+            <div class="label"><i class="fas fa-balance-scale me-1"></i>Solde Net</div>
+            <div class="value" id="kpi-solde">—</div>
+            <div style="font-size:11px;color:var(--text-l);margin-top:2px;">BIF</div>
+          </div>
+        </div>
+      </div>
+      <!-- Chart -->
+      <div class="chart-card">
+        <h5><i class="fas fa-chart-bar me-2"></i>Analyse Mensuelle — 12 derniers mois</h5>
+        <canvas id="chartDashboard" height="90"></canvas>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ SERVICES -->
+    <div id="page-services" class="page-section">
+      <div class="section-header">
+        <h2 style="color:var(--vert)"><i class="fas fa-tools me-2"></i>Services Rendus</h2>
+        <a href="/api/pdf/rapport" class="btn btn-vert btn-sm" target="_blank">
+          <i class="fas fa-file-pdf me-1"></i>Export PDF
+        </a>
+      </div>
+      <div class="form-card">
+        <h5>+ Nouvelle entrée</h5>
+        <div class="row g-2">
+          <div class="col-md-2"><label class="form-label">Date</label>
+            <input type="text" class="form-control" id="svc-date" placeholder="JJ/MM/AAAA"></div>
+          <div class="col-md-3"><label class="form-label">Description *</label>
+            <input type="text" class="form-control" id="svc-desc" placeholder="ex : Consultation client"></div>
+          <div class="col-md-2"><label class="form-label">Client</label>
+            <input type="text" class="form-control" id="svc-client" placeholder="ex : Jean Dupont"></div>
+          <div class="col-md-2"><label class="form-label">Catégorie</label>
+            <input type="text" class="form-control" id="svc-cat" placeholder="ex : Conseil"></div>
+          <div class="col-md-2"><label class="form-label">Durée / Unité</label>
+            <input type="text" class="form-control" id="svc-extra" placeholder="ex : 2h"></div>
+          <div class="col-md-1"><label class="form-label">Montant (BIF)</label>
+            <input type="number" class="form-control" id="svc-montant" placeholder="10000"></div>
+        </div>
+        <div class="mt-3">
+          <button class="btn btn-vert" onclick="addRecord('services')">
+            <i class="fas fa-plus me-1"></i>Ajouter
+          </button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table class="data-table" id="table-services">
+            <thead><tr>
+              <th>Date</th><th>Description</th><th>Client</th>
+              <th>Catégorie</th><th>Durée</th><th>Montant (BIF)</th><th></th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="totals-bar mt-2">
+        <div class="tot-item"><span class="lbl">TOTAL SERVICES</span>
+          <span class="val" id="total-services" style="color:var(--vert)">—</span></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ BIENS -->
+    <div id="page-biens" class="page-section">
+      <div class="section-header">
+        <h2 style="color:var(--bleu)"><i class="fas fa-boxes me-2"></i>Biens Vendus</h2>
+      </div>
+      <div class="form-card">
+        <h5>+ Nouvelle vente</h5>
+        <div class="row g-2">
+          <div class="col-md-2"><label class="form-label">Date</label>
+            <input type="text" class="form-control" id="bien-date" placeholder="JJ/MM/AAAA"></div>
+          <div class="col-md-3"><label class="form-label">Article *</label>
+            <input type="text" class="form-control" id="bien-desc" placeholder="ex : Stylo BIC"></div>
+          <div class="col-md-2"><label class="form-label">Client</label>
+            <input type="text" class="form-control" id="bien-client" placeholder="ex : Boutique ABC"></div>
+          <div class="col-md-2"><label class="form-label">Catégorie</label>
+            <input type="text" class="form-control" id="bien-cat" placeholder="ex : Fournitures"></div>
+          <div class="col-md-1"><label class="form-label">Qté vendue</label>
+            <input type="number" class="form-control" id="bien-extra" placeholder="1"></div>
+          <div class="col-md-2"><label class="form-label">Montant total (BIF)</label>
+            <input type="number" class="form-control" id="bien-montant" placeholder="50000"></div>
+        </div>
+        <div class="mt-3">
+          <button class="btn btn-bleu" onclick="addRecord('biens')">
+            <i class="fas fa-plus me-1"></i>Ajouter
+          </button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table class="data-table" id="table-biens">
+            <thead><tr>
+              <th>Date</th><th>Article</th><th>Client</th>
+              <th>Catégorie</th><th>Qté</th><th>Montant (BIF)</th><th></th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="totals-bar mt-2">
+        <div class="tot-item"><span class="lbl">TOTAL BIENS</span>
+          <span class="val" id="total-biens" style="color:var(--bleu)">—</span></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ SORTIES -->
+    <div id="page-sorties" class="page-section">
+      <div class="section-header">
+        <h2 style="color:var(--rouge)"><i class="fas fa-arrow-up me-2"></i>Dépenses & Charges</h2>
+      </div>
+      <div class="form-card">
+        <h5>+ Nouvelle dépense</h5>
+        <div class="row g-2">
+          <div class="col-md-2"><label class="form-label">Date</label>
+            <input type="text" class="form-control" id="sort-date" placeholder="JJ/MM/AAAA"></div>
+          <div class="col-md-3"><label class="form-label">Description *</label>
+            <input type="text" class="form-control" id="sort-desc" placeholder="ex : Achat matières premières"></div>
+          <div class="col-md-2"><label class="form-label">Fournisseur</label>
+            <input type="text" class="form-control" id="sort-client" placeholder="ex : Grossiste XYZ"></div>
+          <div class="col-md-2"><label class="form-label">Catégorie</label>
+            <input type="text" class="form-control" id="sort-cat" placeholder="ex : Achat stock"></div>
+          <div class="col-md-2"><label class="form-label">Mode Paiement</label>
+            <input type="text" class="form-control" id="sort-extra" placeholder="ex : Cash"></div>
+          <div class="col-md-1"><label class="form-label">Montant (BIF)</label>
+            <input type="number" class="form-control" id="sort-montant" placeholder="10000"></div>
+        </div>
+        <div class="mt-3">
+          <button class="btn btn-rouge" onclick="addRecord('sorties')">
+            <i class="fas fa-plus me-1"></i>Ajouter
+          </button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table class="data-table" id="table-sorties">
+            <thead><tr>
+              <th>Date</th><th>Description</th><th>Fournisseur</th>
+              <th>Catégorie</th><th>Paiement</th><th>Montant (BIF)</th><th></th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="totals-bar mt-2">
+        <div class="tot-item"><span class="lbl">TOTAL DÉPENSES</span>
+          <span class="val" id="total-sorties" style="color:var(--rouge)">—</span></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ STOCK -->
+    <div id="page-stock" class="page-section">
+      <div class="section-header">
+        <h2 style="color:var(--violet)"><i class="fas fa-warehouse me-2"></i>Gestion du Stock</h2>
+      </div>
+      <div class="form-card">
+        <h5>+ Ajouter / Réapprovisionner un article</h5>
+        <div class="row g-2">
+          <div class="col-md-3"><label class="form-label">Nom article *</label>
+            <input type="text" class="form-control" id="stk-nom" placeholder="ex : Stylo BIC"></div>
+          <div class="col-md-2"><label class="form-label">Catégorie</label>
+            <input type="text" class="form-control" id="stk-cat" placeholder="ex : Fournitures"></div>
+          <div class="col-md-1"><label class="form-label">Quantité</label>
+            <input type="number" class="form-control" id="stk-qte" placeholder="100"></div>
+          <div class="col-md-2"><label class="form-label">Coût unitaire (BIF)</label>
+            <input type="number" class="form-control" id="stk-cout" placeholder="500"></div>
+          <div class="col-md-2"><label class="form-label">Fournisseur</label>
+            <input type="text" class="form-control" id="stk-fourn" placeholder="ex : Grossiste ABC"></div>
+          <div class="col-md-2"><label class="form-label">Date entrée</label>
+            <input type="text" class="form-control" id="stk-date" placeholder="JJ/MM/AAAA"></div>
+        </div>
+        <div class="mt-3 d-flex gap-2">
+          <button class="btn btn-violet" onclick="addStock()">
+            <i class="fas fa-plus me-1"></i>Ajouter / Réapprovisionner
+          </button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table class="data-table" id="table-stock">
+            <thead><tr>
+              <th>Article</th><th>Catégorie</th><th>Qté</th>
+              <th>Coût unit.</th><th>Valeur tot.</th><th>Fournisseur</th>
+              <th>Date entrée</th><th>Statut</th><th></th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="totals-bar mt-2">
+        <div class="tot-item"><span class="lbl">VALEUR STOCK</span>
+          <span class="val" id="total-stock" style="color:var(--violet)">—</span></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ RAPPORTS -->
+    <div id="page-rapports" class="page-section">
+      <div class="section-header">
+        <h2 style="color:var(--or)"><i class="fas fa-file-invoice-dollar me-2"></i>États Financiers</h2>
+        <div class="d-flex gap-2">
+          <a href="/api/pdf/rapport" class="btn btn-or btn-sm" target="_blank">
+            <i class="fas fa-file-pdf me-1"></i>Rapport PDF
+          </a>
+          <a href="/api/pdf/facture" class="btn btn-bleu btn-sm" target="_blank">
+            <i class="fas fa-file-invoice me-1"></i>Facture PDF
+          </a>
+        </div>
+      </div>
+
+      <!-- Bilan rapide -->
+      <div class="row g-3 mb-4" id="bilan-row"></div>
+
+      <!-- Chart mensuel -->
+      <div class="chart-card mb-4">
+        <h5><i class="fas fa-chart-bar me-2"></i>Analyse Mensuelle</h5>
+        <canvas id="chartRapport" height="80"></canvas>
+      </div>
+
+      <!-- Tableau mensuel -->
+      <div class="table-wrap mb-4">
+        <div style="padding:14px 18px;border-bottom:1px solid var(--border);font-weight:700;font-size:13px;color:var(--or)">
+          <i class="fas fa-calendar me-2"></i>Récapitulatif Mensuel
+        </div>
+        <div class="table-scroll">
+          <table class="data-table" id="table-monthly">
+            <thead><tr>
+              <th>Mois</th><th>Entrées (BIF)</th><th>Sorties (BIF)</th><th>Bénéfice net</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Historique comptable -->
+      <div class="table-wrap">
+        <div style="padding:14px 18px;border-bottom:1px solid var(--border);">
+          <div class="d-flex align-items-center justify-content-between">
+            <span style="font-weight:700;font-size:13px;">
+              <i class="fas fa-book me-2"></i>Livre Journal — Historique des mouvements
+            </span>
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm" onclick="filterJournal('Tout')"
+                      id="flt-Tout" style="background:var(--surface2);color:var(--text);font-size:12px;">Tout</button>
+              <button class="btn btn-sm btn-vert" onclick="filterJournal('Services')"
+                      id="flt-Services" style="font-size:12px;">Services</button>
+              <button class="btn btn-sm btn-bleu" onclick="filterJournal('Biens')"
+                      id="flt-Biens" style="font-size:12px;">Biens</button>
+              <button class="btn btn-sm btn-rouge" onclick="filterJournal('Sorties')"
+                      id="flt-Sorties" style="font-size:12px;">Sorties</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-scroll" style="max-height:420px;">
+          <table class="data-table" id="table-journal">
+            <thead><tr>
+              <th>N°</th><th>Type</th><th>Date</th><th>Description</th>
+              <th>Client/Fourn.</th><th>Catégorie</th>
+              <th style="text-align:right">DÉBIT (BIF)</th>
+              <th style="text-align:right">CRÉDIT (BIF)</th>
+              <th style="text-align:right">SOLDE CUM.</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Totaux journal -->
+      <div class="totals-bar mt-2">
+        <div class="tot-item"><span class="lbl">DÉBIT</span>
+          <span class="val" id="jrn-debit" style="color:var(--rouge)">—</span></div>
+        <div class="tot-item"><span class="lbl">CRÉDIT</span>
+          <span class="val" id="jrn-credit" style="color:var(--vert)">—</span></div>
+        <div class="tot-item"><span class="lbl">SOLDE</span>
+          <span class="val" id="jrn-solde">—</span></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ CAISSE & BUDGET -->
+    <div id="page-caisse" class="page-section">
+      <div class="section-header">
+        <h2 style="color:var(--bleu)"><i class="fas fa-cash-register me-2"></i>Caisse & Budget</h2>
+      </div>
+
+      <!-- KPIs Caisse -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="kpi-card">
+            <div class="label">Entrées Caisse</div>
+            <div class="value" id="caisse-entrees" style="color:var(--vert)">—</div>
+            <div style="font-size:11px;color:var(--text-l)">BIF</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="kpi-card">
+            <div class="label">Sorties Caisse</div>
+            <div class="value" id="caisse-sorties" style="color:var(--rouge)">—</div>
+            <div style="font-size:11px;color:var(--text-l)">BIF</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="kpi-card">
+            <div class="label">Solde Caisse</div>
+            <div class="value" id="caisse-solde" style="color:var(--bleu)">—</div>
+            <div style="font-size:11px;color:var(--text-l)">BIF</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="kpi-card">
+            <div class="label">Budget Restant</div>
+            <div class="value" id="caisse-bgt" style="color:var(--or)">—</div>
+            <div style="font-size:11px;color:var(--text-l)">BIF</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form caisse -->
+      <div class="form-card">
+        <h5>+ Mouvement de caisse</h5>
+        <div class="row g-2">
+          <div class="col-md-2"><label class="form-label">Date</label>
+            <input type="text" class="form-control" id="cai-date" placeholder="JJ/MM/AAAA"></div>
+          <div class="col-md-2"><label class="form-label">Type</label>
+            <select class="form-select" id="cai-type">
+              <option value="entrée">Entrée</option>
+              <option value="sortie">Sortie</option>
+            </select>
+          </div>
+          <div class="col-md-3"><label class="form-label">Description *</label>
+            <input type="text" class="form-control" id="cai-desc" placeholder="ex : Vente au comptoir"></div>
+          <div class="col-md-2"><label class="form-label">Catégorie</label>
+            <input type="text" class="form-control" id="cai-cat" placeholder="ex : Ventes"></div>
+          <div class="col-md-1"><label class="form-label">Réf.</label>
+            <input type="text" class="form-control" id="cai-ref" placeholder="REC-001"></div>
+          <div class="col-md-2"><label class="form-label">Montant (BIF)</label>
+            <input type="number" class="form-control" id="cai-montant" placeholder="50000"></div>
+        </div>
+        <div class="mt-3">
+          <button class="btn btn-bleu" onclick="addCaisse()">
+            <i class="fas fa-plus me-1"></i>Enregistrer
+          </button>
+        </div>
+      </div>
+
+      <!-- Table caisse -->
+      <div class="table-wrap mb-4">
+        <div style="padding:12px 18px;border-bottom:1px solid var(--border);font-weight:700;font-size:13px;">
+          <i class="fas fa-list me-2"></i>Registre de Caisse
+        </div>
+        <div class="table-scroll">
+          <table class="data-table" id="table-caisse">
+            <thead><tr>
+              <th>Date</th><th>Type</th><th>Description</th>
+              <th>Catégorie</th><th>Réf.</th><th style="text-align:right">Montant</th>
+              <th style="text-align:right">Solde cumulé</th><th></th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Form budget -->
+      <hr style="border-color:var(--border);margin:24px 0;">
+      <h4 style="font-size:16px;font-weight:800;margin-bottom:16px;color:var(--or)">
+        <i class="fas fa-clipboard-list me-2"></i>Gestion du Budget Mensuel
+      </h4>
+      <div class="form-card">
+        <h5>+ Ligne de budget</h5>
+        <div class="row g-2">
+          <div class="col-md-2"><label class="form-label">Mois (MM/AAAA)</label>
+            <input type="text" class="form-control" id="bgt-mois" placeholder="ex : 04/2025"></div>
+          <div class="col-md-3"><label class="form-label">Catégorie *</label>
+            <input type="text" class="form-control" id="bgt-cat" placeholder="ex : Salaires"></div>
+          <div class="col-md-2"><label class="form-label">Budget prévu (BIF)</label>
+            <input type="number" class="form-control" id="bgt-prev" placeholder="500000"></div>
+          <div class="col-md-5"><label class="form-label">Description</label>
+            <input type="text" class="form-control" id="bgt-desc" placeholder="ex : Budget salaires mensuels"></div>
+        </div>
+        <div class="mt-3">
+          <button class="btn btn-or" onclick="addBudget()">
+            <i class="fas fa-plus me-1"></i>Ajouter
+          </button>
+        </div>
+      </div>
+
+      <div class="table-wrap mb-4">
+        <div style="padding:12px 18px;border-bottom:1px solid var(--border);font-weight:700;font-size:13px;color:var(--or)">
+          <i class="fas fa-table me-2"></i>Budget vs Réel
+        </div>
+        <div class="table-scroll">
+          <table class="data-table" id="table-budget">
+            <thead><tr>
+              <th>Mois</th><th>Catégorie</th><th>Budget Prévu</th>
+              <th>Réel (BIF)</th><th>Écart</th><th>Taux %</th><th></th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Analyse comptable -->
+      <hr style="border-color:var(--border);margin:24px 0;">
+      <h4 style="font-size:16px;font-weight:800;margin-bottom:16px;">
+        <i class="fas fa-chart-pie me-2" style="color:var(--violet)"></i>Analyse Comptable Consolidée
+      </h4>
+      <div id="analyse-comptable" class="row g-3"></div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════ PARAMETRES -->
+    <div id="page-parametres" class="page-section">
+      <div class="section-header">
+        <h2><i class="fas fa-cog me-2" style="color:var(--bleu)"></i>Paramètres de l'entreprise</h2>
+      </div>
+      <div class="form-card" style="max-width:600px;">
+        <h5>Informations de l'entreprise</h5>
+        <div class="row g-3">
+          <div class="col-12"><label class="form-label">Nom de l'entreprise</label>
+            <input type="text" class="form-control" id="p-nom" placeholder="ex : SARL MaBoutique"></div>
+          <div class="col-12"><label class="form-label">Adresse</label>
+            <input type="text" class="form-control" id="p-adresse" placeholder="ex : Av. du Commerce, Bujumbura"></div>
+          <div class="col-md-6"><label class="form-label">Téléphone</label>
+            <input type="text" class="form-control" id="p-telephone" placeholder="ex : +257 79 000 000"></div>
+          <div class="col-md-6"><label class="form-label">Email</label>
+            <input type="email" class="form-control" id="p-email" placeholder="ex : contact@entreprise.bi"></div>
+          <div class="col-md-6"><label class="form-label">NIF / RC</label>
+            <input type="text" class="form-control" id="p-nif" placeholder="ex : NIF-123456"></div>
+        </div>
+        <div class="mt-4">
+          <button class="btn btn-bleu" onclick="saveParams()">
+            <i class="fas fa-save me-1"></i>Enregistrer les paramètres
+          </button>
+        </div>
+        <p style="margin-top:16px;font-size:12px;color:var(--text-l)">
+          <i class="fas fa-info-circle me-1"></i>Ces informations apparaissent dans vos exports PDF.
+        </p>
+      </div>
+    </div>
+
+  </div><!-- /page-content -->
+</div><!-- /main -->
+
+<script>
+// ════════════════════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════════════════════
+async function doLogout() {
+  await fetch('/api/auth/logout', {method:'POST'});
+  window.location.href = '/login';
+}
+
+async function loadUserInfo() {
+  try {
+    const res = await fetch('/api/auth/me');
+    const data = await res.json();
+    if (!data.ok) { window.location.href = '/login'; return; }
+    const name = data.username || 'User';
+    document.getElementById('user-name').textContent = name;
+    document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
+  } catch(e) {}
+}
+
+// ════════════════════════════════════════════════════════════
+// ÉTAT GLOBAL
+// ════════════════════════════════════════════════════════════
+let appData = {};
+let analytics = {};
+let currentFilter = 'Tout';
+let chartDash = null, chartRapport = null;
+
+// ════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  // Date du jour dans les champs
+  const today = new Date().toLocaleDateString('fr-FR');
+  ['svc-date','bien-date','sort-date','stk-date','cai-date'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = today;
+  });
+  document.getElementById('sidebar-date').textContent =
+    new Date().toLocaleDateString('fr-FR', {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  loadUserInfo();
+  loadAll();
+});
+
+// ════════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════════
+const pageTitles = {
+  dashboard: 'Tableau de bord', services: 'Services Rendus',
+  biens: 'Biens Vendus', sorties: 'Dépenses & Charges',
+  stock: 'Gestion du Stock', rapports: 'États Financiers',
+  caisse: 'Caisse & Budget', parametres: 'Paramètres'
+};
+
+function showPage(name, link) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('#sidebar nav a').forEach(a => a.classList.remove('active'));
+  if (link) link.classList.add('active');
+  document.getElementById('topbar-title').textContent = pageTitles[name] || name;
+  if (name === 'rapports') renderRapports();
+  if (name === 'caisse') renderAnalyseComptable();
+  // Close sidebar on mobile
+  document.getElementById('sidebar').classList.remove('open');
+  return false;
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ════════════════════════════════════════════════════════════
+// DATA LOADING
+// ════════════════════════════════════════════════════════════
+async function loadAll() {
+  showSpinner(true);
+  try {
+    const [dataRes, analyticsRes] = await Promise.all([
+      fetch('/api/data'), fetch('/api/analytics')
+    ]);
+    appData    = await dataRes.json();
+    analytics  = await analyticsRes.json();
+    renderAll();
+  } catch(e) {
+    toast('Erreur de chargement des données', 'error');
+  } finally {
+    showSpinner(false);
+  }
+}
+
+function renderAll() {
+  renderDashboard();
+  renderTable('services', appData.services || []);
+  renderTable('biens',    appData.biens    || []);
+  renderTable('sorties',  appData.sorties  || []);
+  renderStockTable(appData.stock || []);
+  renderCaisseTable(appData.caisse || []);
+  renderBudgetTable();
+  updateTotals();
+  fillParams();
+  checkLowStock();
+}
+
+// ════════════════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════════════════
+function renderDashboard() {
+  if (!analytics.kpis) return;
+  const k = analytics.kpis;
+  const fmt = v => Math.round(v).toLocaleString('fr-FR');
+  document.getElementById('kpi-svc').textContent    = fmt(k.services);
+  document.getElementById('kpi-biens').textContent  = fmt(k.biens);
+  document.getElementById('kpi-sort').textContent   = fmt(k.sorties);
+  document.getElementById('kpi-stock').textContent  = fmt(k.stock);
+  document.getElementById('kpi-entrees').textContent= fmt(k.entrees);
+  const soldeEl = document.getElementById('kpi-solde');
+  soldeEl.textContent = fmt(k.solde);
+  soldeEl.style.color = k.solde >= 0 ? 'var(--vert)' : 'var(--rouge)';
+  renderMonthlyChart('chartDashboard', 'chartDash');
+}
+
+function renderMonthlyChart(canvasId, varName) {
+  const monthly = analytics.monthly || [];
+  if (!monthly.length) return;
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return;
+  if (window[varName]) window[varName].destroy();
+  window[varName] = new Chart(ctx, {
+    data: {
+      labels: monthly.map(m => m.label),
+      datasets: [
+        { type:'bar', label:'Entrées', data: monthly.map(m=>m.entrees),
+          backgroundColor:'rgba(39,174,96,0.75)', yAxisID:'y' },
+        { type:'bar', label:'Sorties', data: monthly.map(m=>m.sorties),
+          backgroundColor:'rgba(192,57,43,0.75)', yAxisID:'y' },
+        { type:'line', label:'Bénéfice net', data: monthly.map(m=>m.net),
+          borderColor:'#d4ac0d', backgroundColor:'rgba(212,172,13,.12)',
+          borderWidth:2.5, pointRadius:4, fill:true, yAxisID:'y' },
+      ]
+    },
+    options: {
+      responsive:true, interaction:{mode:'index',intersect:false},
+      plugins:{ legend:{labels:{color:'#8593a0',font:{size:12}}} },
+      scales:{
+        y:{ticks:{color:'#8593a0',callback:v=>v>=1000?Math.round(v/1000)+'k':v},
+           grid:{color:'#22263a'}},
+        x:{ticks:{color:'#8593a0'},grid:{color:'#22263a'}}
+      }
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// TABLES GÉNÉRIQUES
+// ════════════════════════════════════════════════════════════
+function renderTable(section, records) {
+  const tbody = document.querySelector(`#table-${section} tbody`);
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  records.forEach((rec, idx) => {
+    const rowId = rec.id || idx;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${rec.date||''}</td>
+      <td>${esc(rec.description||'')}</td>
+      <td>${esc(rec.client||'')}</td>
+      <td>${esc(rec.categorie||'')}</td>
+      <td>${esc(rec.extra||'')}</td>
+      <td style="text-align:right;font-weight:700">${fmt(rec.montant)} BIF</td>
+      <td><button class="btn btn-sm btn-rouge" style="padding:3px 8px;font-size:11px;"
+          onclick="deleteRecord('${section}',${rowId})">
+          <i class="fas fa-trash"></i></button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderStockTable(items) {
+  const tbody = document.querySelector('#table-stock tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  items.forEach((item, idx) => {
+    const qte = parseFloat(item.quantite||0);
+    const cout= parseFloat(item.cout_unitaire||0);
+    const val = qte * cout;
+    let statut, cls;
+    if (qte <= 0)    { statut = '⛔ VIDE';   cls = 'badge-vide'; }
+    else if (qte<=10){ statut = '⚠ FAIBLE'; cls = 'badge-faible'; }
+    else             { statut = '✅ OK';     cls = 'badge-ok'; }
+    const rowId = item.id || idx;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><b>${esc(item.nom||'')}</b></td>
+      <td>${esc(item.categorie||'')}</td>
+      <td style="text-align:center;font-weight:700">${Math.round(qte)}</td>
+      <td style="text-align:right">${fmt(cout)} BIF</td>
+      <td style="text-align:right;font-weight:700">${fmt(val)} BIF</td>
+      <td>${esc(item.fournisseur||'')}</td>
+      <td>${item.date_entree||''}</td>
+      <td><span class="${cls}">${statut}</span></td>
+      <td>
+        <button class="btn btn-sm" style="background:var(--vert-l);color:var(--vert);padding:3px 8px;font-size:11px;margin-right:4px;"
+            onclick="adjustStock(${rowId})"><i class="fas fa-plus"></i></button>
+        <button class="btn btn-sm btn-rouge" style="padding:3px 8px;font-size:11px;"
+            onclick="deleteRecord('stock',${rowId})"><i class="fas fa-trash"></i></button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderCaisseTable(records) {
+  const tbody = document.querySelector('#table-caisse tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  const sorted = [...records].sort((a,b) => compareDates(a.date,b.date));
+  let solde = 0;
+  sorted.forEach((rec, idx) => {
+    const m = parseFloat(rec.montant||0);
+    const isEntree = rec.type === 'entrée';
+    if (isEntree) solde += m; else solde -= m;
+    const sign = isEntree ? '+' : '-';
+    const color = isEntree ? 'var(--vert)' : 'var(--rouge)';
+    const soldeColor = solde >= 0 ? 'var(--vert)' : 'var(--rouge)';
+    const rowId = rec.id || idx;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${rec.date||''}</td>
+      <td><span style="color:${color};font-weight:700">${isEntree?'↓ Entrée':'↑ Sortie'}</span></td>
+      <td>${esc(rec.description||'')}</td>
+      <td>${esc(rec.categorie||'')}</td>
+      <td>${esc(rec.reference||'')}</td>
+      <td style="text-align:right;font-weight:700;color:${color}">${sign}${fmt(m)} BIF</td>
+      <td style="text-align:right;font-weight:700;color:${soldeColor}">
+        ${solde>=0?'+':''}${fmt(solde)} BIF</td>
+      <td><button class="btn btn-sm btn-rouge" style="padding:3px 8px;font-size:11px;"
+          onclick="deleteCaisse(${rowId})"><i class="fas fa-trash"></i></button></td>`;
+    tbody.appendChild(tr);
+  });
+  // Update KPIs
+  const ent = (analytics.caisse||{}).entrees||0;
+  const sor = (analytics.caisse||{}).sorties||0;
+  const sol = (analytics.caisse||{}).solde||0;
+  document.getElementById('caisse-entrees').textContent = fmt(ent);
+  document.getElementById('caisse-sorties').textContent = fmt(sor);
+  const solEl = document.getElementById('caisse-solde');
+  solEl.textContent = fmt(sol);
+  solEl.style.color = sol >= 0 ? 'var(--vert)' : 'var(--rouge)';
+}
+
+function renderBudgetTable() {
+  const tbody = document.querySelector('#table-budget tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  (analytics.budget_rows||[]).forEach((row, idx) => {
+    const taux = row.taux;
+    let color = taux > 100 ? 'var(--rouge)' : (taux > 80 ? 'var(--or)' : 'var(--vert)');
+    const ecartColor = row.ecart > 0 ? 'var(--rouge)' : 'var(--vert)';
+    const rowId = row.id || idx;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${row.mois}</td><td><b>${esc(row.categorie)}</b></td>
+      <td style="text-align:right">${fmt(row.prevu)} BIF</td>
+      <td style="text-align:right">${fmt(row.reel)} BIF</td>
+      <td style="text-align:right;color:${ecartColor};font-weight:700">
+        ${row.ecart>=0?'+':''}${fmt(row.ecart)} BIF</td>
+      <td style="text-align:center;color:${color};font-weight:700">${taux.toFixed(1)}%</td>
+      <td><button class="btn btn-sm btn-rouge" style="padding:3px 8px;font-size:11px;"
+          onclick="deleteBudget(${rowId})"><i class="fas fa-trash"></i></button></td>`;
+    tbody.appendChild(tr);
+  });
+  // Budget restant KPI
+  const totalBgt = (analytics.budget_rows||[]).reduce((s,r)=>s+r.prevu,0);
+  const totalReel = (analytics.kpis||{}).sorties||0;
+  const rest = totalBgt - totalReel;
+  const bgtEl = document.getElementById('caisse-bgt');
+  if (bgtEl) {
+    bgtEl.textContent = fmt(rest);
+    bgtEl.style.color = rest >= 0 ? 'var(--vert)' : 'var(--rouge)';
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// RAPPORTS
+// ════════════════════════════════════════════════════════════
+function renderRapports() {
+  // Bilan
+  const k = (analytics.kpis||{});
+  const bilanRow = document.getElementById('bilan-row');
+  if (bilanRow) {
+    const items = [
+      ['Services', k.services, 'var(--vert)'],
+      ['Biens', k.biens, 'var(--bleu)'],
+      ['Sorties', k.sorties, 'var(--rouge)'],
+      ['Stock', k.stock, 'var(--violet)'],
+      ['Solde Net', k.solde, k.solde>=0?'var(--vert)':'var(--rouge)'],
+    ];
+    bilanRow.innerHTML = items.map(([lbl,val,c])=>`
+      <div class="col-6 col-md-4 col-lg-2-4">
+        <div class="kpi-card">
+          <div class="label">${lbl}</div>
+          <div class="value" style="color:${c}">${fmt(val)}</div>
+          <div style="font-size:11px;color:var(--text-l)">BIF</div>
+        </div>
+      </div>`).join('');
+  }
+  // Chart
+  renderMonthlyChart('chartRapport', 'chartRapport');
+  // Monthly table
+  const mtbody = document.querySelector('#table-monthly tbody');
+  if (mtbody) {
+    mtbody.innerHTML = '';
+    (analytics.monthly||[]).forEach(m => {
+      const netColor = m.net>=0?'var(--vert)':'var(--rouge)';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><b>${m.label}</b></td>
+        <td style="text-align:right">${fmt(m.entrees)} BIF</td>
+        <td style="text-align:right">${fmt(m.sorties)} BIF</td>
+        <td style="text-align:right;font-weight:800;color:${netColor}">
+          ${m.net>=0?'+':''}${fmt(m.net)} BIF</td>`;
+      mtbody.appendChild(tr);
+    });
+  }
+  // Journal
+  renderJournal(currentFilter);
+}
+
+function filterJournal(f) {
+  currentFilter = f;
+  ['Tout','Services','Biens','Sorties'].forEach(name => {
+    const btn = document.getElementById('flt-'+name);
+    if(btn) btn.style.opacity = name===f ? '1' : '0.5';
+  });
+  renderJournal(f);
+}
+
+function renderJournal(filter) {
+  const tbody = document.querySelector('#table-journal tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  let allRecs = [];
+  const mapping = {
+    'Services': [['services','Service','svc','credit']],
+    'Biens':    [['biens','Bien','bien','credit']],
+    'Sorties':  [['sorties','Sortie','sort','debit']],
+    'Tout':     [['services','Service','svc','credit'],
+                 ['biens','Bien','bien','credit'],
+                 ['sorties','Sortie','sort','debit']],
+  };
+  (mapping[filter]||[]).forEach(([key,label,cls,side]) => {
+    (appData[key]||[]).forEach(rec => allRecs.push({label,cls,side,rec}));
+  });
+  allRecs.sort((a,b) => compareDates(a.rec.date, b.rec.date));
+  let td=0, tc=0, solde=0, no=0;
+  allRecs.forEach(({label,cls,side,rec}) => {
+    no++;
+    const m = parseFloat(rec.montant||0);
+    let deb='', cre='';
+    if (side==='debit') { deb=fmt(m)+''; td+=m; solde-=m; }
+    else { cre=fmt(m)+''; tc+=m; solde+=m; }
+    const soldeColor = solde>=0?'var(--vert)':'var(--rouge)';
+    const tr = document.createElement('tr');
+    tr.className = 'row-'+cls;
+    tr.innerHTML = `
+      <td style="text-align:center">${no}</td>
+      <td>${label}</td>
+      <td>${rec.date||''}</td>
+      <td>${esc((rec.description||'').substring(0,50))}</td>
+      <td>${esc((rec.client||'').substring(0,30))}</td>
+      <td>${esc((rec.categorie||'').substring(0,25))}</td>
+      <td style="text-align:right;color:var(--rouge);font-weight:600">${deb?deb+' BIF':''}</td>
+      <td style="text-align:right;color:var(--vert);font-weight:600">${cre?cre+' BIF':''}</td>
+      <td style="text-align:right;font-weight:700;color:${soldeColor}">
+        ${solde>=0?'+':''}${fmt(solde)} BIF</td>`;
+    tbody.appendChild(tr);
+  });
+  if (allRecs.length) {
+    const sep = document.createElement('tr');
+    sep.className = 'row-total';
+    sep.innerHTML = `<td colspan="6" style="text-align:right;padding-right:12px;">TOTAUX</td>
+      <td style="text-align:right;color:var(--rouge);font-weight:800">${fmt(td)} BIF</td>
+      <td style="text-align:right;color:var(--vert);font-weight:800">${fmt(tc)} BIF</td>
+      <td style="text-align:right;font-weight:800;color:${(tc-td)>=0?'var(--vert)':'var(--rouge)'}"">
+        ${(tc-td)>=0?'+':''}${fmt(tc-td)} BIF</td>`;
+    tbody.appendChild(sep);
+  }
+  document.getElementById('jrn-debit').textContent = fmt(td)+' BIF';
+  document.getElementById('jrn-credit').textContent = fmt(tc)+' BIF';
+  const net = tc-td;
+  const solEl = document.getElementById('jrn-solde');
+  solEl.textContent = (net>=0?'+':'')+fmt(net)+' BIF';
+  solEl.style.color = net>=0?'var(--vert)':'var(--rouge)';
+}
+
+// ════════════════════════════════════════════════════════════
+// ANALYSE COMPTABLE
+// ════════════════════════════════════════════════════════════
+function renderAnalyseComptable() {
+  const k = analytics.kpis||{};
+  const caisse = analytics.caisse||{};
+  const budget_rows = analytics.budget_rows||[];
+  const totalBgt = budget_rows.reduce((s,r)=>s+r.prevu,0);
+  const ecartBgt = (k.sorties||0) - totalBgt;
+  const stockVal = k.stock||0;
+
+  const sections = [
+    {title:'COMPTE DE RÉSULTAT', color:'var(--vert)', items:[
+      {lbl:'Total Recettes (Services + Biens)', val:k.entrees||0, note:'Crédit', pos:true},
+      {lbl:'Total Charges & Dépenses', val:k.sorties||0, note:'Débit', pos:false},
+      {lbl:'Résultat Net', val:k.solde||0, note:(k.solde||0)>=0?'Bénéfice':'Perte', auto:true},
+    ]},
+    {title:'CAISSE', color:'var(--bleu)', items:[
+      {lbl:'Entrées Caisse', val:caisse.entrees||0, note:'', pos:true},
+      {lbl:'Sorties Caisse', val:caisse.sorties||0, note:'', pos:false},
+      {lbl:'Solde de Caisse', val:caisse.solde||0, note:'', auto:true},
+    ]},
+    {title:'BUDGET', color:'var(--or)', items:[
+      {lbl:'Budget Total Prévu', val:totalBgt, note:'', pos:true},
+      {lbl:'Charges Réelles', val:k.sorties||0, note:'', pos:false},
+      {lbl:'Écart Budget/Réel', val:-ecartBgt, note:ecartBgt>0?'Dépassement':'Économie', auto:true},
+    ]},
+    {title:'BILAN SIMPLIFIÉ', color:'var(--violet)', items:[
+      {lbl:'Valeur Stock', val:stockVal, note:'Actif', pos:true},
+      {lbl:'Solde Caisse', val:caisse.solde||0, note:'Actif', pos:true},
+      {lbl:'Résultat Net', val:k.solde||0, note:'Capitaux', auto:true},
+    ]},
+  ];
+
+  const container = document.getElementById('analyse-comptable');
+  if (!container) return;
+  container.innerHTML = '';
+
+  sections.forEach(sec => {
+    const col = document.createElement('div');
+    col.className = 'col-12 col-md-6';
+    col.innerHTML = `
+      <div class="table-wrap">
+        <div style="padding:12px 16px;background:${sec.color};border-radius:10px 10px 0 0;">
+          <span style="font-size:13px;font-weight:800;color:#fff">${sec.title}</span>
+        </div>
+        <table class="data-table">
+          ${sec.items.map(item => {
+            const v = item.val||0;
+            const isPos = item.auto ? v>=0 : item.pos;
+            const color = item.auto ? (v>=0?'var(--vert)':'var(--rouge)') :
+                          (item.pos ? 'var(--vert)' : 'var(--rouge)');
+            return `<tr>
+              <td>${item.lbl}</td>
+              <td style="text-align:right;font-weight:800;color:${color}">
+                ${v>=0?'+':''}${fmt(v)} BIF</td>
+              <td style="text-align:center;font-size:11px;color:var(--text-l)">${item.note||''}</td>
+            </tr>`;
+          }).join('')}
+        </table>
+      </div>`;
+    container.appendChild(col);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// CRUD OPERATIONS
+// ════════════════════════════════════════════════════════════
+function getField(id) {
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+async function addRecord(section) {
+  const prefix = section === 'services' ? 'svc' :
+                 section === 'biens'    ? 'bien' : 'sort';
+  const desc = getField(`${prefix}-desc`);
+  const montant = parseFloat(getField(`${prefix}-montant`));
+  if (!desc) { toast('La description est obligatoire', 'error'); return; }
+  if (!montant || montant <= 0) { toast('Montant invalide', 'error'); return; }
+
+  const rec = {
+    date:        getField(`${prefix}-date`) || today(),
+    description: desc,
+    client:      getField(`${prefix}-client`),
+    categorie:   getField(`${prefix}-cat`),
+    extra:       getField(`${prefix}-extra`),
+    montant:     montant,
+  };
+  showSpinner(true);
+  try {
+    const res = await fetch(`/api/${section}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(rec)
+    });
+    const json = await res.json();
+    if (json.ok) {
+      await loadAll();
+      // Clear form
+      [`${prefix}-desc`,`${prefix}-client`,`${prefix}-cat`,`${prefix}-extra`,`${prefix}-montant`]
+        .forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+      toast('Enregistrement ajouté ✓', 'success');
+    }
+  } catch(e) { toast('Erreur réseau', 'error'); }
+  finally { showSpinner(false); }
+}
+
+async function deleteRecord(section, rowId) {
+  if (!confirm('Supprimer cet enregistrement ?')) return;
+  showSpinner(true);
+  try {
+    await fetch(`/api/${section}/${rowId}`, {method:'DELETE'});
+    await loadAll();
+    toast('Supprimé ✓', 'success');
+  } catch(e) { toast('Erreur réseau', 'error'); }
+  finally { showSpinner(false); }
+}
+
+async function addStock() {
+  const nom   = getField('stk-nom');
+  const qte   = parseFloat(getField('stk-qte'));
+  const cout  = parseFloat(getField('stk-cout'));
+  if (!nom) { toast('Nom obligatoire', 'error'); return; }
+  if (!qte || !cout) { toast('Quantité et coût obligatoires', 'error'); return; }
+  const rec = {
+    nom, categorie: getField('stk-cat'),
+    quantite: qte, cout_unitaire: cout,
+    fournisseur: getField('stk-fourn'),
+    date_entree: getField('stk-date') || today(),
+  };
+  showSpinner(true);
+  try {
+    await fetch('/api/stock', { method:'POST',
+      headers:{'Content-Type':'application/json'}, body:JSON.stringify(rec) });
+    await loadAll();
+    ['stk-nom','stk-cat','stk-qte','stk-cout','stk-fourn'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
+    toast('Stock mis à jour ✓', 'success');
+  } catch(e) { toast('Erreur réseau','error'); }
+  finally { showSpinner(false); }
+}
+
+async function adjustStock(rowId) {
+  const qStr = prompt('Quantité à ajouter :');
+  if (qStr === null) return;
+  const q = parseFloat(qStr);
+  if (!q) { toast('Quantité invalide','error'); return; }
+  showSpinner(true);
+  try {
+    await fetch(`/api/stock/${rowId}/adjust`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({quantite: q})
+    });
+    await loadAll();
+    toast('Stock ajusté ✓', 'success');
+  } catch(e) { toast('Erreur réseau','error'); }
+  finally { showSpinner(false); }
+}
+
+async function addCaisse() {
+  const desc = getField('cai-desc');
+  const montant = parseFloat(getField('cai-montant'));
+  if (!desc) { toast('Description obligatoire','error'); return; }
+  if (!montant) { toast('Montant invalide','error'); return; }
+  const rec = {
+    date:        getField('cai-date') || today(),
+    type:        document.getElementById('cai-type').value,
+    description: desc,
+    categorie:   getField('cai-cat'),
+    reference:   getField('cai-ref'),
+    montant:     montant,
+  };
+  showSpinner(true);
+  try {
+    await fetch('/api/caisse', { method:'POST',
+      headers:{'Content-Type':'application/json'}, body:JSON.stringify(rec) });
+    await loadAll();
+    ['cai-desc','cai-cat','cai-ref','cai-montant'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
+    toast('Mouvement enregistré ✓', 'success');
+  } catch(e) { toast('Erreur réseau','error'); }
+  finally { showSpinner(false); }
+}
+
+async function deleteCaisse(rowId) {
+  if (!confirm('Supprimer ce mouvement ?')) return;
+  showSpinner(true);
+  try {
+    await fetch(`/api/caisse/${rowId}`, {method:'DELETE'});
+    await loadAll();
+    toast('Supprimé ✓', 'success');
+  } catch(e) { toast('Erreur réseau','error'); }
+  finally { showSpinner(false); }
+}
+
+async function addBudget() {
+  const mois = getField('bgt-mois');
+  const cat  = getField('bgt-cat');
+  const prev = parseFloat(getField('bgt-prev'));
+  if (!mois || !cat) { toast('Mois et catégorie obligatoires','error'); return; }
+  if (!prev) { toast('Montant invalide','error'); return; }
+  const rec = { mois, categorie:cat, prevu:prev, description:getField('bgt-desc') };
+  showSpinner(true);
+  try {
+    await fetch('/api/budget', { method:'POST',
+      headers:{'Content-Type':'application/json'}, body:JSON.stringify(rec) });
+    await loadAll();
+    ['bgt-mois','bgt-cat','bgt-prev','bgt-desc'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
+    toast('Budget ajouté ✓', 'success');
+  } catch(e) { toast('Erreur réseau','error'); }
+  finally { showSpinner(false); }
+}
+
+async function deleteBudget(rowId) {
+  if (!confirm('Supprimer cette ligne budget ?')) return;
+  showSpinner(true);
+  try {
+    await fetch(`/api/budget/${rowId}`, {method:'DELETE'});
+    await loadAll();
+    toast('Supprimé ✓', 'success');
+  } catch(e) { toast('Erreur réseau','error'); }
+  finally { showSpinner(false); }
+}
+
+async function saveParams() {
+  const ent = {
+    nom:       getField('p-nom'),
+    adresse:   getField('p-adresse'),
+    telephone: getField('p-telephone'),
+    email:     getField('p-email'),
+    nif:       getField('p-nif'),
+  };
+  showSpinner(true);
+  try {
+    await fetch('/api/entreprise', { method:'POST',
+      headers:{'Content-Type':'application/json'}, body:JSON.stringify(ent) });
+    await loadAll();
+    toast('Paramètres enregistrés ✓', 'success');
+  } catch(e) { toast('Erreur réseau','error'); }
+  finally { showSpinner(false); }
+}
+
+function fillParams() {
+  const ent = appData.entreprise||{};
+  ['nom','adresse','telephone','email','nif'].forEach(k => {
+    const el = document.getElementById('p-'+k);
+    if (el) el.value = ent[k]||'';
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// TOTAUX & ALERTES
+// ════════════════════════════════════════════════════════════
+function updateTotals() {
+  const k = analytics.kpis||{};
+  document.getElementById('total-services').textContent = fmt(k.services||0)+' BIF';
+  document.getElementById('total-biens').textContent    = fmt(k.biens||0)+' BIF';
+  document.getElementById('total-sorties').textContent  = fmt(k.sorties||0)+' BIF';
+  document.getElementById('total-stock').textContent    = fmt(k.stock||0)+' BIF';
+}
+
+function checkLowStock() {
+  const low = analytics.low_stock||[];
+  const banner = document.getElementById('alert-banner');
+  if (low.length) {
+    const names = low.slice(0,5).map(i=>i.nom).join(', ');
+    banner.textContent = `⚠ STOCK FAIBLE : ${names}${low.length>5?' +'+( low.length-5)+' autres':''}`;
+    banner.classList.remove('d-none');
+  } else {
+    banner.classList.add('d-none');
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// UTILITAIRES
+// ════════════════════════════════════════════════════════════
+function fmt(v) {
+  return Math.round(parseFloat(v)||0).toLocaleString('fr-FR');
+}
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function today() {
+  return new Date().toLocaleDateString('fr-FR');
+}
+function compareDates(a, b) {
+  const parseD = s => {
+    if (!s) return 0;
+    const parts = s.split(/[\/-]/);
+    if (parts[0].length === 4) return new Date(s).getTime();
+    return new Date(`${parts[2]}-${parts[1]}-${parts[0]}`).getTime();
+  };
+  return parseD(a) - parseD(b);
+}
+function showSpinner(show) {
+  document.getElementById('spinner').classList.toggle('show', show);
+}
+function toast(msg, type='success') {
+  const c = document.getElementById('toast-container');
+  const d = document.createElement('div');
+  d.className = `toast-msg ${type}`;
+  d.innerHTML = `<i class="fas fa-${type==='success'?'check-circle':'exclamation-circle'} me-2"></i>${msg}`;
+  c.appendChild(d);
+  setTimeout(() => d.remove(), 3000);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📒 Classeur de Gestion — Connexion</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a;
+  --vert: #27ae60; --bleu: #2e86c1; --rouge: #c0392b;
+  --text: #e8edf3; --text-l: #8593a0; --border: #2e3550;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Segoe UI', Arial, sans-serif;
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+}
+.auth-wrapper {
+  width: 100%; max-width: 440px; padding: 24px 16px;
+}
+.auth-logo {
+  text-align: center; margin-bottom: 32px;
+}
+.auth-logo .icon { font-size: 52px; display: block; margin-bottom: 10px; }
+.auth-logo h1 { font-size: 22px; font-weight: 800; color: var(--bleu); }
+.auth-logo p { font-size: 13px; color: var(--text-l); margin-top: 4px; }
+
+.auth-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 32px;
+}
+.auth-tabs {
+  display: flex; gap: 0; margin-bottom: 28px;
+  background: var(--surface2); border-radius: 8px; padding: 4px;
+}
+.auth-tab {
+  flex: 1; text-align: center; padding: 9px; border-radius: 6px;
+  font-size: 13px; font-weight: 700; cursor: pointer; color: var(--text-l);
+  transition: all .2s; border: none; background: transparent;
+}
+.auth-tab.active { background: var(--bleu); color: #fff; }
+
+.form-label { font-size: 12px; color: var(--text-l); font-weight: 600; margin-bottom: 5px; display: block; }
+.form-control {
+  background: var(--bg) !important; border: 1px solid var(--border) !important;
+  color: var(--text) !important; font-size: 13px; border-radius: 8px;
+  padding: 10px 14px; width: 100%; outline: none; transition: border-color .2s;
+}
+.form-control:focus { border-color: var(--bleu) !important; box-shadow: 0 0 0 3px rgba(46,134,193,.15) !important; }
+.form-group { margin-bottom: 16px; }
+
+.btn-primary-auth {
+  width: 100%; background: var(--bleu); color: #fff; border: none;
+  border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: background .2s; margin-top: 8px;
+}
+.btn-primary-auth:hover { background: #1a6fa0; }
+.btn-primary-auth:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.error-msg {
+  background: rgba(192,57,43,.15); border: 1px solid var(--rouge);
+  color: var(--rouge); border-radius: 8px; padding: 10px 14px;
+  font-size: 13px; margin-top: 12px; display: none;
+}
+.success-msg {
+  background: rgba(39,174,96,.15); border: 1px solid var(--vert);
+  color: var(--vert); border-radius: 8px; padding: 10px 14px;
+  font-size: 13px; margin-top: 12px; display: none;
+}
+.input-icon-wrap { position: relative; }
+.input-icon-wrap .form-control { padding-left: 40px; }
+.input-icon-wrap .icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--text-l); font-size: 14px; }
+
+.divider { text-align: center; margin: 20px 0; color: var(--text-l); font-size: 12px; position: relative; }
+.divider::before, .divider::after {
+  content: ''; position: absolute; top: 50%; width: 38%; height: 1px; background: var(--border);
+}
+.divider::before { left: 0; }
+.divider::after { right: 0; }
+
+.footer-note { text-align: center; margin-top: 20px; font-size: 12px; color: var(--text-l); }
+.spinner-sm { display: none; width: 16px; height: 16px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin .6s linear infinite; margin: 0 auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="auth-wrapper">
+  <div class="auth-logo">
+    <span class="icon">📒</span>
+    <h1>Classeur de Gestion</h1>
+    <p>Gestion financière pour votre entreprise</p>
+  </div>
+
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">
+        <i class="fas fa-sign-in-alt me-1"></i>Connexion
+      </button>
+      <button class="auth-tab" id="tab-register" onclick="switchTab('register')">
+        <i class="fas fa-user-plus me-1"></i>Inscription
+      </button>
+    </div>
+
+    <!-- Formulaire Connexion -->
+    <div id="form-login">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <div class="input-icon-wrap">
+          <i class="fas fa-envelope icon"></i>
+          <input type="email" class="form-control" id="login-email" placeholder="votre@email.com" autocomplete="email">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mot de passe</label>
+        <div class="input-icon-wrap">
+          <i class="fas fa-lock icon"></i>
+          <input type="password" class="form-control" id="login-password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+      </div>
+      <button class="btn-primary-auth" id="btn-login" onclick="doLogin()">
+        <span id="login-label"><i class="fas fa-sign-in-alt me-2"></i>Se connecter</span>
+        <div class="spinner-sm" id="login-spinner"></div>
+      </button>
+      <div class="error-msg" id="login-error"></div>
+    </div>
+
+    <!-- Formulaire Inscription -->
+    <div id="form-register" style="display:none;">
+      <div class="form-group">
+        <label class="form-label">Nom d'utilisateur</label>
+        <div class="input-icon-wrap">
+          <i class="fas fa-user icon"></i>
+          <input type="text" class="form-control" id="reg-username" placeholder="ex: jean_dupont" autocomplete="username">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <div class="input-icon-wrap">
+          <i class="fas fa-envelope icon"></i>
+          <input type="email" class="form-control" id="reg-email" placeholder="votre@email.com" autocomplete="email">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mot de passe <span style="color:var(--text-l);font-weight:400">(6 caractères min)</span></label>
+        <div class="input-icon-wrap">
+          <i class="fas fa-lock icon"></i>
+          <input type="password" class="form-control" id="reg-password" placeholder="••••••••" autocomplete="new-password">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirmer le mot de passe</label>
+        <div class="input-icon-wrap">
+          <i class="fas fa-lock icon"></i>
+          <input type="password" class="form-control" id="reg-confirm" placeholder="••••••••" autocomplete="new-password">
+        </div>
+      </div>
+      <button class="btn-primary-auth" id="btn-register" onclick="doRegister()">
+        <span id="reg-label"><i class="fas fa-user-plus me-2"></i>Créer mon compte</span>
+        <div class="spinner-sm" id="reg-spinner"></div>
+      </button>
+      <div class="error-msg" id="reg-error"></div>
+      <div class="success-msg" id="reg-success"></div>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    <i class="fas fa-shield-halved me-1"></i>
+    Vos données sont isolées et sécurisées par compte
+  </div>
+</div>
+
+<script>
+// Lire le mode depuis l'URL ou paramètre
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('mode') === 'register') switchTab('register');
+
+function switchTab(tab) {
+  document.getElementById('form-login').style.display    = tab === 'login'    ? '' : 'none';
+  document.getElementById('form-register').style.display = tab === 'register' ? '' : 'none';
+  document.getElementById('tab-login').className    = 'auth-tab' + (tab === 'login'    ? ' active' : '');
+  document.getElementById('tab-register').className = 'auth-tab' + (tab === 'register' ? ' active' : '');
+}
+
+function setLoading(prefix, on) {
+  const btn = document.getElementById('btn-'+prefix);
+  const lbl = document.getElementById(prefix+'-label');
+  const spn = document.getElementById(prefix+'-spinner');
+  btn.disabled = on;
+  lbl.style.display = on ? 'none' : '';
+  spn.style.display = on ? 'block' : 'none';
+}
+
+function showError(prefix, msg) {
+  const el = document.getElementById(prefix+'-error');
+  el.style.display = 'block';
+  el.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i>' + msg;
+}
+function hideError(prefix) {
+  document.getElementById(prefix+'-error').style.display = 'none';
+}
+
+async function doLogin() {
+  hideError('login');
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!email || !password) { showError('login', 'Veuillez remplir tous les champs'); return; }
+  setLoading('login', true);
+  try {
+    const res  = await fetch('/api/auth/login', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email, password})
+    });
+    const data = await res.json();
+    if (data.ok) {
+      window.location.href = '/';
+    } else {
+      showError('login', data.error || 'Erreur de connexion');
+    }
+  } catch(e) {
+    showError('login', 'Erreur réseau — veuillez réessayer');
+  } finally {
+    setLoading('login', false);
+  }
+}
+
+async function doRegister() {
+  hideError('reg');
+  document.getElementById('reg-success').style.display = 'none';
+  const username = document.getElementById('reg-username').value.trim();
+  const email    = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const confirm  = document.getElementById('reg-confirm').value;
+  if (!username || !email || !password) { showError('reg', 'Tous les champs sont requis'); return; }
+  if (password !== confirm) { showError('reg', 'Les mots de passe ne correspondent pas'); return; }
+  if (password.length < 6)  { showError('reg', 'Mot de passe trop court (6 caractères min)'); return; }
+  setLoading('register', true);
+  try {
+    const res  = await fetch('/api/auth/register', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({username, email, password})
+    });
+    const data = await res.json();
+    if (data.ok) {
+      window.location.href = '/';
+    } else {
+      showError('reg', data.error || 'Erreur lors de la création du compte');
+    }
+  } catch(e) {
+    showError('reg', 'Erreur réseau — veuillez réessayer');
+  } finally {
+    setLoading('register', false);
+  }
+}
+
+// Enter key support
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const activeForm = document.getElementById('form-login').style.display === 'none' ? 'register' : 'login';
+  if (activeForm === 'login') doLogin();
+  else doRegister();
+});
+</script>
+</body>
+</html>
